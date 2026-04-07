@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>六年級國語期中挑戰賽 🏆</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #FFB7C5;
@@ -26,7 +27,7 @@
 
         #app {
             width: 95%; height: 95%;
-            max-width: 850px;
+            max-width: 900px; /* 稍微加寬以容納雙欄 */
             background: white;
             border-radius: 30px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -37,107 +38,109 @@
 
         .header { text-align: center; font-size: 1.5rem; margin-bottom: 10px; color: #FF80AB; font-weight: bold; }
 
-        /* 隱藏區塊 */
         #quiz-container, #word-container, #result-screen, #mode-selection { 
             flex: 1; display: none; flex-direction: column; 
         }
 
         .active { display: flex !important; }
 
-        /* 朗讀按鈕 (預設隱藏，語音版才會顯示) */
-        .read-btn {
-            background: #E3F2FD;
-            border: none;
-            border-radius: 50%;
-            width: 38px; height: 38px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-right: 12px;
-            display: none; /* 預設不顯示 */
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* QR Code 彈窗 */
+        #qr-modal {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: white;
+            border: 5px solid var(--secondary); padding: 20px;
+            border-radius: 20px; z-index: 100; text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
         }
 
-        /* 語音模式啟動時顯示喇叭 */
+        /* 朗讀按鈕 */
+        .read-btn {
+            background: #E3F2FD; border: none; border-radius: 50%;
+            width: 32px; height: 32px; font-size: 1rem;
+            cursor: pointer; margin-right: 8px; display: none;
+            align-items: center; justify-content: center; flex-shrink: 0;
+        }
         .audio-mode .read-btn { display: inline-flex; }
 
-        /* 題目與選項佈局 */
+        /* 文意題目樣式 */
         .question-box {
-            display: flex; align-items: center;
-            font-size: 1.25rem; margin-bottom: 20px;
-            line-height: 1.5; padding: 15px;
-            background: #F0F4FF; border-radius: 15px;
+            display: flex; align-items: center; font-size: 1.2rem;
+            margin-bottom: 15px; padding: 15px; background: #F0F4FF; border-radius: 15px;
         }
-
-        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .opt-row { display: flex; align-items: center; }
-
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .answer-btn {
-            flex: 1; padding: 15px;
-            font-size: 1.1rem; border: 2px solid #EEE;
-            border-radius: 15px; background: white;
-            text-align: left; transition: 0.2s;
+            flex: 1; padding: 12px; font-size: 1.05rem; border: 2px solid #EEE;
+            border-radius: 15px; background: white; text-align: left;
         }
-        .answer-btn:active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* 語詞辨識 */
+        /* 重點：語詞辨識改為「雙欄」佈局 */
+        #word-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 分成兩排 */
+            gap: 10px;
+            padding: 5px;
+        }
+
         .word-card {
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 12px; padding: 12px;
-            border-bottom: 2px dashed #FFD1DC;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 8px; border: 1px solid #FFE4E1; border-radius: 12px;
+            background: #FFF9F9;
         }
+
         .word-btn { 
-            font-size: 1.5rem; width: 130px; margin: 0 8px; 
-            border: 2px solid #EEE; border-radius: 12px; background: white; padding: 10px;
+            font-size: 1.2rem; width: 85px; margin: 0 4px; 
+            border: 2px solid #EEE; border-radius: 10px; background: white; padding: 6px;
+            white-space: nowrap;
         }
+
         .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
         .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
 
-        /* 模式選擇按鈕 */
-        .mode-btn {
-            padding: 25px; margin: 15px; font-size: 1.4rem;
-            border-radius: 20px; border: none; cursor: pointer;
-            transition: transform 0.2s; color: white;
-        }
-        .mode-btn:active { transform: scale(0.95); }
+        /* 按鈕樣式 */
+        .mode-btn { padding: 20px; margin: 10px; font-size: 1.3rem; border-radius: 20px; border: none; color: white; }
         .btn-normal { background-color: #B2DFDB; color: #00796B; }
         .btn-audio { background-color: #FFCDD2; color: #C2185B; }
-
-        .progress-bar { height: 8px; background: #EEE; border-radius: 4px; margin-bottom: 10px; }
-        #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 4px; transition: width 0.3s; }
-        .done { pointer-events: none; opacity: 0.8; }
+        
+        .done { pointer-events: none; opacity: 0.7; }
+        .progress-bar { height: 6px; background: #EEE; border-radius: 3px; margin-bottom: 10px; }
+        #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 3px; transition: width 0.3s; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="mode-selection" class="active" style="text-align: center; justify-content: center;">
-        <h1 style="color: #FF80AB;">🌟 請選擇測驗模式 🌟</h1>
-        <p>點選適合你的方式開始挑戰！</p>
-        <button class="mode-btn btn-normal" onclick="initApp(false)">📖 一般挑戰版<br><small>(自己閱讀題目)</small></button>
-        <button class="mode-btn btn-audio" onclick="initApp(true)">🔊 語音助讀版<br><small>(可點擊圖示聽題目)</small></button>
+        <h1 style="color: #FF80AB; margin-bottom: 5px;">🎒 國語期中挑戰賽</h1>
+        <p>請選擇您的測驗模式</p>
+        <button class="mode-btn btn-normal" onclick="initApp(false)">📖 一般挑戰版</button>
+        <button class="mode-btn btn-audio" onclick="initApp(true)">🔊 語音助讀版</button>
+        <div style="margin-top: 15px;">
+            <button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; font-size:0.8rem;">📱 顯示教室分享碼</button>
+        </div>
+    </div>
+
+    <div id="qr-modal">
+        <h3>掃描進入測驗 📲</h3>
+        <div id="qrcode" style="display: flex; justify-content: center; margin: 15px;"></div>
+        <button onclick="toggleQR()" style="padding: 5px 20px; border-radius: 10px; border: 1px solid #999;">關閉</button>
     </div>
 
     <div id="quiz-container">
         <div class="progress-bar"><div id="progress-fill"></div></div>
-        <div class="header" id="quiz-header">📝 文意選擇題</div>
         <div id="q-box" class="question-box"></div>
         <div id="q-options" class="options-grid"></div>
     </div>
 
     <div id="word-container">
-        <div class="header">🎧 語詞辨識 (選出正確字詞)</div>
-        <p id="word-hint" style="text-align: center; color: #888;"></p>
-        <div id="word-list" style="overflow-y: auto; flex: 1;"></div>
-        <button id="next-to-result" style="display:none; margin-top:10px; background:var(--secondary); color:white; padding:15px; border:none; border-radius:15px; font-size:1.2rem;" onclick="showFinalResult()">結算分數 🏁</button>
+        <div class="header" style="font-size: 1.3rem;">🎧 語詞辨識 (選出正確字詞)</div>
+        <div id="word-list"></div>
+        <button id="next-to-result" style="display:none; margin-top:15px; background:var(--secondary); color:white; padding:12px; border:none; border-radius:15px; font-size:1.1rem; width: 100%;" onclick="showFinalResult()">查看最終分數 🏁</button>
     </div>
 
     <div id="result-screen" style="text-align: center; justify-content: center;">
-        <h1 id="score-display" style="font-size: 3rem;">🎉</h1>
-        <p style="font-size: 1.2rem;">挑戰完成！你是最棒的！</p>
-        <button onclick="location.reload()" style="padding:12px 30px; border-radius:15px; border:2px solid #ccc; background: white; font-size:1rem;">重新挑戰 🔄</button>
+        <h1 id="score-display" style="font-size: 3.5rem; margin: 0;">🎉</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 20px;">挑戰完成！你真的很認真喔！</p>
+        <button onclick="location.reload()" style="padding:10px 25px; border-radius:12px; border:2px solid #ccc; background: white;">重新挑戰 🔄</button>
     </div>
 </div>
 
@@ -167,12 +170,23 @@
         { correct: "凶猛", wrong: "凶孟" }, { correct: "竅門", wrong: "竅們" }
     ];
 
+    // QR Code 初始化
+    new QRCode(document.getElementById("qrcode"), {
+        text: window.location.href,
+        width: 150, height: 150
+    });
+
+    function toggleQR() {
+        const modal = document.getElementById('qr-modal');
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
     function speak(text) {
         if (!isAudioMode) return;
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
         msg.lang = 'zh-TW';
-        msg.rate = 0.9;
+        msg.rate = 0.95;
         window.speechSynthesis.speak(msg);
     }
 
@@ -185,27 +199,21 @@
     }
 
     function showQuestion() {
-        if (currentQ >= questions.length) {
-            startWordTest();
-            return;
-        }
+        if (currentQ >= questions.length) { startWordTest(); return; }
         const q = questions[currentQ];
-        const qBox = document.getElementById('q-box');
-        qBox.innerHTML = `
+        document.getElementById('q-box').innerHTML = `
             <button class="read-btn" onclick="speak('${q.q}')">🔊</button>
             <span>${currentQ + 1}. ${q.q}</span>
         `;
-
-        const optionsDiv = document.getElementById('q-options');
-        optionsDiv.innerHTML = '';
+        const opts = document.getElementById('q-options');
+        opts.innerHTML = '';
         q.a.forEach((opt, idx) => {
             const row = document.createElement('div');
             row.className = 'opt-row';
-            row.innerHTML = `
-                <button class="read-btn" onclick="speak('${opt}')">🔊</button>
-                <button class="answer-btn" onclick="checkAnswer(${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>
-            `;
-            optionsDiv.appendChild(row);
+            row.style.display = 'flex'; row.style.alignItems = 'center';
+            row.innerHTML = `<button class="read-btn" onclick="speak('${opt}')">🔊</button>
+                <button class="answer-btn" onclick="checkAnswer(${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>`;
+            opts.appendChild(row);
         });
         document.getElementById('progress-fill').style.width = `${(currentQ / questions.length) * 100}%`;
     }
@@ -219,20 +227,17 @@
     function startWordTest() {
         document.getElementById('quiz-container').classList.remove('active');
         document.getElementById('word-container').classList.add('active');
-        document.getElementById('word-hint').innerText = isAudioMode ? "點擊喇叭聽聽看，哪一個字才是正確的？" : "請從兩個相似字中選出正確的字詞。";
-        
         const list = document.getElementById('word-list');
         words.forEach((pair) => {
             const div = document.createElement('div');
             div.className = 'word-card';
             const isCorrectLeft = Math.random() > 0.5;
-            const leftWord = isCorrectLeft ? pair.correct : pair.wrong;
-            const rightWord = isCorrectLeft ? pair.wrong : pair.correct;
-
+            const w1 = isCorrectLeft ? pair.correct : pair.wrong;
+            const w2 = isCorrectLeft ? pair.wrong : pair.correct;
             div.innerHTML = `
-                <button class="read-btn" onclick="speak('${pair.correct}')">🔊</button>
-                <button class="word-btn" onclick="checkWord(this, '${leftWord}', '${pair.correct}')">${leftWord}</button>
-                <button class="word-btn" onclick="checkWord(this, '${rightWord}', '${pair.correct}')">${rightWord}</button>
+                <button class="read-btn" style="width:28px; height:28px; font-size:0.8rem;" onclick="speak('${pair.correct}')">🔊</button>
+                <button class="word-btn" onclick="checkWord(this, '${w1}', '${pair.correct}')">${w1}</button>
+                <button class="word-btn" onclick="checkWord(this, '${w2}', '${pair.correct}')">${w2}</button>
             `;
             list.appendChild(div);
         });
@@ -240,11 +245,9 @@
 
     let wordsChecked = 0;
     function checkWord(btn, selected, correct) {
-        const parent = btn.parentElement;
-        if (parent.classList.contains('done')) return;
-        if (selected === correct) { btn.classList.add('correct'); score++; } 
-        else { btn.classList.add('wrong'); }
-        parent.classList.add('done');
+        if (btn.parentElement.classList.contains('done')) return;
+        if (selected === correct) { btn.classList.add('correct'); score++; } else { btn.classList.add('wrong'); }
+        btn.parentElement.classList.add('done');
         wordsChecked++;
         if (wordsChecked === words.length) document.getElementById('next-to-result').style.display = 'block';
     }
