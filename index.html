@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>六年級國語期中挑戰賽 🏆</title>
+    <style>
+        :root {
+            --primary: #FFB7C5;
+            --secondary: #98D8D8;
+            --bg: #FFF9E3;
+            --text: #5A5A5A;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* 固定版面不滑動 */
+        }
+
+        #app {
+            width: 90%;
+            height: 90%;
+            max-width: 800px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #FF80AB;
+            font-weight: bold;
+        }
+
+        /* 測驗區塊 */
+        #quiz-container, #word-container, #result-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            padding: 10px;
+            background: #F0F4FF;
+            border-radius: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #EEE;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 語詞辨識區塊 */
+        .word-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-bottom: 2px dashed #FFD1DC;
+        }
+
+        .btn-audio {
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .word-options {
+            display: flex;
+            gap: 20px;
+        }
+
+        .word-btn {
+            font-size: 1.5rem;
+            width: 120px;
+            text-align: center;
+        }
+
+        .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
+        .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
+
+        .progress-bar {
+            height: 10px;
+            background: #EEE;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary);
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        .active { display: flex !important; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="start-screen" class="active" style="text-align: center; justify-content: center; display: flex; flex-direction: column;">
+        <h1>🎒 期中挑戰賽 🎓</h1>
+        <p>準備好測試你的國語能力了嗎？</p>
+        <button onclick="startQuiz()" style="text-align: center; background: var(--secondary); color: white; border: none;">開始文意測驗 ✨</button>
+    </div>
+
+    <div id="quiz-container">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div class="header">📝 文意選擇題</div>
+        <div id="q-text" class="question-text"></div>
+        <div id="q-options" class="options-grid"></div>
+    </div>
+
+    <div id="word-container">
+        <div class="header">🎧 語詞聽力辨識</div>
+        <p style="text-align: center;">點擊喇叭，選出正確的字詞！</p>
+        <div id="word-list" style="overflow-y: auto;"></div>
+        <button id="next-to-result" style="display:none; margin-top:10px; background:var(--secondary); color:white; text-align:center;" onclick="showFinalResult()">看總分 🏁</button>
+    </div>
+
+    <div id="result-screen" style="text-align: center; justify-content: center;">
+        <h1 id="score-display">🎉 太棒了！</h1>
+        <p>挑戰完成！你是國語小老師！</p>
+        <button onclick="location.reload()" style="text-align: center;">重新挑戰 🔄</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "在〈風中騎士〉一文中，作者剛開始練習騎單車時，為什麼感到手心冒汗、呼吸急促？", a: ["因為她擔心會撞到正在尿尿的阿雄", "因為單車的高度比作者本人還要高", "因為表姐教練的態度非常嚴厲", "因為路上的觀眾太多，讓她感到害羞"], c: 1 },
+        { q: "〈風中騎士〉的結局中，作者摔車並造成阿雄受傷的主要技術原因是？", a: ["教練完全沒有教導如何煞車", "單車的鏈條突然斷裂失去控制", "作者為了展現放開雙手的特技", "作者分心去回應雜貨店阿秀的招手"], c: 0 },
+        { q: "在〈達駭黑熊〉中，爺爺為何在年輕時殺掉黑熊後，有一段時間不敢上山打獵？", a: ["因為他擔心會再次遇到黑熊的報復", "因為布農族傳統忌殺黑熊，內心充滿懊悔", "因為他在搏鬥中受了重傷無法行動", "因為他失去了最好的獵犬與裝備"], c: 1 },
+        { q: "根據〈達駭黑熊〉的描述，下列何者屬於爺爺所傳授的「山林智慧」？", a: ["如何利用太陽的影子來判斷精確經緯度", "學習如何使用無人機進行空拍巡視", "從地上的糞便辨識動物的種類", "教導如何製作精巧的獵熊陷阱"], c: 2 },
+        { q: "在〈夢想與楷模〉一文中，齊柏林先生克服了什麼生理恐懼來完成《看見臺灣》？", a: ["懼高症", "嚴重的暈機反應", "幽閉恐懼症", "色盲"], c: 0 },
+        { q: "籃球球員科懷．雷納德 (Kawhi Leonard) 除了學習喬丹的動作，更學習他的哪種精神？", a: ["兩千次投籃練習的勤奮精神", "追求高薪合約的商業頭腦", "在場上對裁判抗議的強硬態度", "與隊友合作的領導能力"], c: 0 },
+        { q: "華特．迪士尼的故事告訴我們，當原有的夢想「此路不通」時應該如何面對？", a: ["對辭退他的公司提出法律訴訟", "放棄繪畫，轉向完全不相關的商業領域", "選擇另一個岔口向前，可能看見未預料的美景", "堅持原有的目標直到對方認可為止"], c: 2 },
+        { q: "在〈蒂烈娜〉中，蒂烈娜最初為什麼認為自己是族群裡的「失敗者」？", a: ["因為她被族群中的長輩驅逐", "因為她找不到回家的路", "因為只有她無法躍過激流", "因為她的銀白色鱗片不夠閃亮"], c: 2 },
+        { q: "蒂烈娜在夢境（或幻象）中學到了什麼，讓她最後能成功躍過激流？", a: ["星星們給了她一雙隱形的翅膀", "學會了如何在水中長時間閉氣", "她發現了激流下方的祕密通道", "展現出不畏疼痛、奮力一躍的決心"], c: 3 },
+        { q: "綜合這幾篇文本，關於「克服困難」與「夢想」的描述，下列敘述何者正確？", a: ["夢想一旦設定，就不可以有任何變動或調整", "只要有教練，就絕對不會遭遇任何危險", "只有天賦異稟的人才有可能實現遠大的目標", "失敗是過程的一部分，重新站起來是前行的方式"], c: 3 }
+    ];
+
+    const words = [
+        { correct: "長褲", wrong: "長庫" },
+        { correct: "提供", wrong: "提拱" },
+        { correct: "黑熊", wrong: "黑能" },
+        { correct: "骸骨", wrong: "駭骨" },
+        { correct: "領域", wrong: "領或" },
+        { correct: "強勁", wrong: "強經" },
+        { correct: "敏捷", wrong: "敏睫" },
+        { correct: "楷模", wrong: "楷摸" },
+        { correct: "凶猛", wrong: "凶孟" },
+        { correct: "竅門", wrong: "竅們" }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function startQuiz() {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('quiz-container').classList.add('active');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentQ >= questions.length) {
+            startWordTest();
+            return;
+        }
+        const q = questions[currentQ];
+        document.getElementById('q-text').innerText = `${currentQ + 1}. ${q.q}`;
+        const optionsDiv = document.getElementById('q-options');
+        optionsDiv.innerHTML = '';
+        
+        q.a.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt}`;
+            btn.onclick = () => checkAnswer(idx);
+            optionsDiv.appendChild(btn);
+        });
+        
+        document.getElementById('progress-fill').style.width = `${(currentQ / questions.length) * 100}%`;
+    }
+
+    function checkAnswer(idx) {
+        if (idx === questions[currentQ].c) score++;
+        currentQ++;
+        showQuestion();
+    }
+
+    function startWordTest() {
+        document.getElementById('quiz-container').classList.remove('active');
+        document.getElementById('word-container').classList.add('active');
+        
+        const list = document.getElementById('word-list');
+        words.forEach((pair, index) => {
+            const div = document.createElement('div');
+            div.className = 'word-card';
+            
+            // 隨機左右順序
+            const isCorrectLeft = Math.random() > 0.5;
+            const leftWord = isCorrectLeft ? pair.correct : pair.wrong;
+            const rightWord = isCorrectLeft ? pair.wrong : pair.correct;
+
+            div.innerHTML = `
+                <button class="btn-audio" onclick="speak('${pair.correct}')">🔊</button>
+                <div class="word-options">
+                    <button class="word-btn" onclick="checkWord(this, '${leftWord}', '${pair.correct}')">${leftWord}</button>
+                    <button class="word-btn" onclick="checkWord(this, '${rightWord}', '${pair.correct}')">${rightWord}</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function speak(text) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-TW';
+        window.speechSynthesis.speak(msg);
+    }
+
+    let wordsChecked = 0;
+    function checkWord(btn, selected, correct) {
+        if (btn.parentElement.classList.contains('done')) return;
+        
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+        }
+        btn.parentElement.classList.add('done');
+        wordsChecked++;
+        
+        if (wordsChecked === words.length) {
+            document.getElementById('next-to-result').style.display = 'block';
+        }
+    }
+
+    function showFinalResult() {
+        document.getElementById('word-container').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        const total = questions.length + words.length;
+        document.getElementById('score-display').innerText = `🏆 總分：${score} / ${total}`;
+    }
+</script>
+
+</body>
+</html>
