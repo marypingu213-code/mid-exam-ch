@@ -32,80 +32,84 @@
             background: white;
             border-radius: 30px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 20px;
+            padding: 25px;
             display: flex; flex-direction: column;
             position: relative;
         }
 
-        .header { text-align: center; font-size: 1.5rem; margin-bottom: 10px; color: var(--accent); font-weight: bold; }
-
-        #quiz-container, #word-container, #result-screen, #mode-selection { 
+        /* 區塊顯示控制 */
+        #quiz-container, #word-container, #result-screen, #mode-selection, #mcq-summary { 
             flex: 1; display: none; flex-direction: column; 
         }
-
         .active { display: flex !important; }
 
-        /* 倒數計時樣式 */
+        /* 倒數計時 */
         .countdown-box {
-            background: #FFF0F5;
-            padding: 10px;
-            border-radius: 15px;
-            margin: 10px 0;
-            border: 2px dashed var(--primary);
-            font-size: 1rem;
+            background: #FFF0F5; padding: 15px; border-radius: 15px;
+            margin: 15px 0; border: 2px dashed var(--primary);
         }
-        #timer { color: #E91E63; font-weight: bold; font-size: 1.2rem; }
+        #timer { color: #E91E63; font-weight: bold; font-size: 1.5rem; }
 
-        /* QR Code 彈窗 */
-        #qr-modal {
-            display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: white;
-            border: 5px solid var(--secondary); padding: 20px;
-            border-radius: 20px; z-index: 100; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.3);
-        }
-
-        .read-btn {
-            background: #E3F2FD; border: none; border-radius: 50%;
-            width: 32px; height: 32px; font-size: 1rem;
-            cursor: pointer; margin-right: 8px; display: none;
-            align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .audio-mode .read-btn { display: inline-flex; }
-
+        /* 文意測驗 */
         .question-box {
-            display: flex; align-items: center; font-size: 1.2rem;
-            margin-bottom: 15px; padding: 15px; background: #F0F4FF; border-radius: 15px;
+            display: flex; align-items: flex-start; font-size: 1.4rem;
+            margin-bottom: 20px; padding: 20px; background: #F0F4FF; border-radius: 15px;
         }
-        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         .answer-btn {
-            flex: 1; padding: 12px; font-size: 1.05rem; border: 2px solid #EEE;
+            padding: 15px; font-size: 1.2rem; border: 2px solid #EEE;
             border-radius: 15px; background: white; text-align: left;
         }
         .answer-btn:active { background: var(--primary); color: white; }
 
-        /* 語詞雙欄佈局 */
-        #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 5px; }
-        .word-card {
-            display: flex; align-items: center; padding: 8px; 
-            border: 1px solid #FFE4E1; border-radius: 12px; background: #FFF9F9;
+        /* 語詞辨識 (大字一頁一題) */
+        .word-display-area {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
         }
-        .word-btn { 
-            font-size: 1.2rem; width: 85px; margin: 0 4px; 
-            border: 2px solid #EEE; border-radius: 10px; background: white; padding: 6px;
+        .word-pair-box {
+            display: flex; align-items: center; justify-content: center;
+            gap: 30px; margin-bottom: 40px;
         }
-
+        .word-btn-big {
+            font-size: 4rem; /* 超大字體 */
+            padding: 30px 50px; border-radius: 25px;
+            border: 4px solid #EEE; background: white;
+            cursor: pointer; transition: 0.2s;
+            min-width: 250px; text-align: center;
+        }
         .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
         .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
-        .done { pointer-events: none; opacity: 0.7; }
 
-        .mode-btn { padding: 18px; margin: 8px; font-size: 1.3rem; border-radius: 20px; border: none; color: white; cursor: pointer; }
+        /* 階段性總結清單 */
+        .summary-list {
+            text-align: left; background: #f9f9f9; padding: 20px;
+            border-radius: 15px; overflow-y: auto; max-height: 250px; margin: 10px 0;
+        }
+        .error-item { color: #D32F2F; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+        /* 按鈕樣式 */
+        .mode-btn { padding: 20px; margin: 10px; font-size: 1.4rem; border-radius: 20px; border: none; color: white; cursor: pointer; }
         .btn-normal { background-color: #B2DFDB; color: #00796B; }
         .btn-audio { background-color: #FFCDD2; color: #C2185B; }
-        .btn-lobby { background-color: var(--secondary); color: white; margin-top: 20px; padding: 15px 40px; }
+        .btn-next { background-color: var(--secondary); color: white; padding: 15px 40px; border-radius: 15px; border:none; font-size: 1.3rem; }
 
-        .progress-bar { height: 6px; background: #EEE; border-radius: 3px; margin-bottom: 10px; }
-        #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 3px; transition: width 0.3s; }
+        .read-btn {
+            background: #E3F2FD; border: none; border-radius: 50%;
+            width: 45px; height: 45px; font-size: 1.5rem;
+            cursor: pointer; margin-right: 15px; display: none;
+            align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .audio-mode .read-btn { display: inline-flex; }
+        
+        .progress-bar { height: 10px; background: #EEE; border-radius: 5px; margin-bottom: 10px; }
+        #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 5px; transition: width 0.3s; }
+        
+        #qr-modal {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: white;
+            border: 5px solid var(--secondary); padding: 20px; border-radius: 20px; z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -113,51 +117,61 @@
 <div id="app">
     <div id="mode-selection" class="active" style="text-align: center; justify-content: center;">
         <h1 style="color: var(--accent); margin: 0;">🎓 畢業倒數挑戰賽</h1>
-        
         <div class="countdown-box">
             距離 6/15 畢業典禮還有：<br>
             <span id="timer">計算中...</span>
         </div>
-
         <button class="mode-btn btn-normal" onclick="initApp(false)">📖 一般挑戰版</button>
         <button class="mode-btn btn-audio" onclick="initApp(true)">🔊 語音助讀版</button>
-        
-        <div style="margin-top: 10px;">
-            <button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">📱 顯示教室分享碼</button>
-        </div>
-    </div>
-
-    <div id="qr-modal">
-        <h3>掃描進入測驗 📲</h3>
-        <div id="qrcode" style="display: flex; justify-content: center; margin: 15px;"></div>
-        <button onclick="toggleQR()" style="padding: 5px 20px; border-radius: 10px; border: 1px solid #999; cursor:pointer;">關閉</button>
+        <div style="margin-top: 10px;"><button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; cursor:pointer;">📱 顯示教室分享碼</button></div>
     </div>
 
     <div id="quiz-container">
         <div class="progress-bar"><div id="progress-fill"></div></div>
-        <div class="header" style="font-size: 1.1rem;">第一階段：文意選擇</div>
         <div id="q-box" class="question-box"></div>
         <div id="q-options" class="options-grid"></div>
     </div>
 
+    <div id="mcq-summary" style="text-align: center; justify-content: center;">
+        <h2 style="color: var(--accent);">第一階段完成！✨</h2>
+        <div style="font-size: 1.5rem; margin-bottom: 10px;">答對 <span id="mcq-correct-count" style="color:green; font-weight:bold;">0</span> 題 / 共 10 題</div>
+        <div id="error-review-area">
+            <p>需留意的題目：</p>
+            <div id="mcq-error-list" class="summary-list"></div>
+        </div>
+        <button class="btn-next" onclick="startWordTest()">進入第二階段：語詞辨識 👉</button>
+    </div>
+
     <div id="word-container">
-        <div class="header" style="font-size: 1.1rem;">第二階段：語詞辨識</div>
-        <div id="word-list"></div>
-        <button id="next-to-result" style="display:none; margin-top:15px; background:var(--secondary); color:white; padding:12px; border:none; border-radius:15px; font-size:1.1rem; width: 100%; cursor:pointer;" onclick="showFinalResult()">完成測驗 🏁</button>
+        <div class="progress-bar"><div id="word-progress-fill" style="height:100%; width:0%; background:var(--primary); border-radius:5px;"></div></div>
+        <div class="word-display-area">
+            <div id="word-audio-box" style="margin-bottom: 20px;"></div>
+            <div id="word-pair-container" class="word-pair-box"></div>
+            <p style="color: #999;">請點選正確的字詞</p>
+        </div>
     </div>
 
     <div id="result-screen" style="text-align: center; justify-content: center;">
-        <h1 id="score-display" style="font-size: 4rem; margin: 0;">🎉</h1>
-        <p style="font-size: 1.3rem;">太棒了！測驗完成！</p>
-        <button class="mode-btn btn-lobby" onclick="goToLobby()">回到大廳 🏠</button>
+        <h1 style="font-size: 4rem; margin: 0;">🏆</h1>
+        <h2>挑戰全數完成！</h2>
+        <div style="font-size: 1.8rem; margin-bottom: 30px;">總得分：<span id="final-total-score">0</span> / 20</div>
+        <button class="mode-btn" style="background: var(--secondary);" onclick="goToLobby()">回到大廳 🏠</button>
+    </div>
+
+    <div id="qr-modal" style="text-align:center;">
+        <h3>掃描進入測驗</h3>
+        <div id="qrcode" style="display:flex; justify-content:center; margin:15px;"></div>
+        <button onclick="toggleQR()">關閉</button>
     </div>
 </div>
 
 <script>
     let isAudioMode = false;
     let currentQ = 0;
-    let score = 0;
-    let wordsChecked = 0;
+    let mcqCorrect = 0;
+    let wordCorrect = 0;
+    let currentW = 0;
+    let mcqResults = [];
 
     const questions = [
         { q: "在〈風中騎士〉一文中，作者剛開始練習騎單車時，為什麼感到手心冒汗、呼吸急促？", a: ["因為她擔心會撞到正在尿尿的阿雄", "因為單車的高度比作者本人還要高", "因為表姐教練的態度非常嚴厲", "因為路上的觀眾太多，讓她感到害羞"], c: 1 },
@@ -166,7 +180,7 @@
         { q: "根據〈達駭黑熊〉的描述，下列何者屬於爺爺所傳授的「山林智慧」？", a: ["如何利用太陽的影子來判斷精確經緯度", "學習如何使用無人機進行空拍巡視", "從地上的糞便辨識動物的種類", "教導如何製作精巧的獵熊陷阱"], c: 2 },
         { q: "在〈夢想與楷模〉一文中，齊柏林先生克服了什麼生理恐懼來完成《看見臺灣》？", a: ["懼高症", "嚴重的暈機反應", "幽閉恐懼症", "色盲"], c: 0 },
         { q: "籃球球員科懷．雷納德 除了學習喬丹的動作，更學習他的哪種精神？", a: ["兩千次投籃練習的勤奮精神", "追求高薪合約的商業頭腦", "在場上對裁判抗議的強硬態度", "與隊友合作的領導能力"], c: 0 },
-        { q: "華特．迪士尼的故事告訴我們，當原有的夢想「此路不通」時應該如何面對？", a: ["對辭退他的公司提出法律訴訟", "放棄繪畫，轉向完全不相關的商業領域", "選擇另一個岔口向前，可能看見未預料的美景", "堅持原有的目標直到對方認可為止"], c: 2 },
+        { q: "華特．迪士尼的故事告訴我們，當原有的夢夢「此路不通」時應該如何面對？", a: ["對辭退他的公司提出法律訴訟", "放棄繪畫，轉向完全不相關的商業領域", "選擇另一個岔口向前，可能看見未預料的美景", "堅持原有的目標直到對方認可為止"], c: 2 },
         { q: "在〈蒂烈娜〉中，蒂烈娜最初為什麼認為自己是族群裡的「失敗者」？", a: ["因為她被族群中的長輩驅逐", "因為她找不到回家的路", "因為只有她無法躍過激流", "因為她的銀白色鱗片不夠閃亮"], c: 2 },
         { q: "蒂烈娜在夢境（或幻象）中學到了什麼，讓她最後能成功躍過激流？", a: ["星星們給了她一雙隱形的翅膀", "學會了如何在水中長時間閉氣", "她發現了激流下方的祕密通道", "展現出不畏疼痛、奮力一躍的決心"], c: 3 },
         { q: "綜合這幾篇文本，關於「克服困難」與「夢想」的描述，下列敘述何者正確？", a: ["夢想一旦設定，就不可以有任何變動或調整", "只要有教練，就絕對不會遭遇任何危險", "只有天賦異稟的人才有可能實現遠大的目標", "失敗是過程的一部分，重新站起來是前行的方式"], c: 3 }
@@ -180,116 +194,121 @@
         { correct: "凶猛", wrong: "凶孟" }, { correct: "竅門", wrong: "竅們" }
     ];
 
-    // 畢業倒數計時邏輯
     function updateCountdown() {
         const gradDate = new Date("2026/06/15 00:00:00").getTime();
-        const now = new Date().getTime();
-        const diff = gradDate - now;
-
-        if (diff <= 0) {
-            document.getElementById("timer").innerText = "畢業快樂！🎓";
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        document.getElementById("timer").innerText = `${days} 天 ${hours} 小時`;
+        const diff = gradDate - new Date().getTime();
+        if (diff <= 0) { document.getElementById("timer").innerText = "畢業快樂！🎓"; return; }
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        document.getElementById("timer").innerText = `${d} 天 ${h} 小時`;
     }
-    setInterval(updateCountdown, 60000);
-    updateCountdown();
+    setInterval(updateCountdown, 60000); updateCountdown();
 
-    // QR Code
     new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 150, height: 150 });
-
-    function toggleQR() {
-        const modal = document.getElementById('qr-modal');
-        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-    }
+    function toggleQR() { const m = document.getElementById('qr-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
 
     function speak(text) {
         if (!isAudioMode) return;
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'zh-TW';
-        msg.rate = 0.95;
-        window.speechSynthesis.speak(msg);
+        msg.lang = 'zh-TW'; msg.rate = 0.9; window.speechSynthesis.speak(msg);
     }
 
     function initApp(audioMode) {
         isAudioMode = audioMode;
-        if (isAudioMode) document.body.classList.add('audio-mode');
-        else document.body.classList.remove('audio-mode');
+        currentQ = 0; mcqCorrect = 0; mcqResults = [];
         document.getElementById('mode-selection').classList.remove('active');
         document.getElementById('quiz-container').classList.add('active');
         showQuestion();
     }
 
     function showQuestion() {
-        if (currentQ >= questions.length) { startWordTest(); return; }
+        if (currentQ >= questions.length) { showMCQSummary(); return; }
         const q = questions[currentQ];
         document.getElementById('q-box').innerHTML = `<button class="read-btn" onclick="speak('${q.q}')">🔊</button><span>${currentQ + 1}. ${q.q}</span>`;
         const opts = document.getElementById('q-options');
         opts.innerHTML = '';
         q.a.forEach((opt, idx) => {
-            const row = document.createElement('div');
-            row.style.display = 'flex'; row.style.alignItems = 'center';
-            row.innerHTML = `<button class="read-btn" onclick="speak('${opt}')">🔊</button>
-                <button class="answer-btn" onclick="checkAnswer(${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>`;
-            opts.appendChild(row);
+            const btn = document.createElement('button');
+            btn.className = 'answer-btn';
+            btn.innerHTML = `<div style="display:flex; align-items:center;"><button class="read-btn" onclick="event.stopPropagation(); speak('${opt}')">🔊</button>${String.fromCharCode(65 + idx)}. ${opt}</div>`;
+            btn.onclick = () => {
+                const isRight = (idx === q.c);
+                if (isRight) mcqCorrect++;
+                mcqResults.push({ q: q.q, isRight: isRight, correctAns: q.a[q.c] });
+                currentQ++;
+                showQuestion();
+            };
+            opts.appendChild(btn);
         });
         document.getElementById('progress-fill').style.width = `${(currentQ / questions.length) * 100}%`;
     }
 
-    function checkAnswer(idx) {
-        if (idx === questions[currentQ].c) score++;
-        currentQ++;
-        showQuestion();
+    function showMCQSummary() {
+        document.getElementById('quiz-container').classList.remove('active');
+        document.getElementById('mcq-summary').classList.add('active');
+        document.getElementById('mcq-correct-count').innerText = mcqCorrect;
+        const errList = document.getElementById('mcq-error-list');
+        errList.innerHTML = '';
+        const errors = mcqResults.filter(r => !r.isRight);
+        if (errors.length === 0) {
+            errList.innerHTML = '<div style="color:green; text-align:center;">太厲害了！全部答對！🌟</div>';
+        } else {
+            errors.forEach((r, i) => {
+                const div = document.createElement('div');
+                div.className = 'error-item';
+                div.innerHTML = `<b>題目：</b>${r.q}<br><span style="color:green"><b>正確答案：</b>${r.correctAns}</span>`;
+                errList.appendChild(div);
+            });
+        }
     }
 
     function startWordTest() {
-        document.getElementById('quiz-container').classList.remove('active');
+        currentW = 0; wordCorrect = 0;
+        document.getElementById('mcq-summary').classList.remove('active');
         document.getElementById('word-container').classList.add('active');
-        const list = document.getElementById('word-list');
-        list.innerHTML = ''; // 清空舊內容
-        words.forEach((pair) => {
-            const div = document.createElement('div');
-            div.className = 'word-card';
-            const isCorrectLeft = Math.random() > 0.5;
-            const w1 = isCorrectLeft ? pair.correct : pair.wrong;
-            const w2 = isCorrectLeft ? pair.wrong : pair.correct;
-            div.innerHTML = `
-                <button class="read-btn" style="width:28px; height:28px; font-size:0.8rem;" onclick="speak('${pair.correct}')">🔊</button>
-                <button class="word-btn" onclick="checkWord(this, '${w1}', '${pair.correct}')">${w1}</button>
-                <button class="word-btn" onclick="checkWord(this, '${w2}', '${pair.correct}')">${w2}</button>
-            `;
-            list.appendChild(div);
-        });
+        showWordPair();
     }
 
-    function checkWord(btn, selected, correct) {
-        if (btn.parentElement.classList.contains('done')) return;
-        if (selected === correct) { btn.classList.add('correct'); score++; } else { btn.classList.add('wrong'); }
-        btn.parentElement.classList.add('done');
-        wordsChecked++;
-        if (wordsChecked === words.length) document.getElementById('next-to-result').style.display = 'block';
+    function showWordPair() {
+        if (currentW >= words.length) { showFinalResult(); return; }
+        const pair = words[currentW];
+        const audioBox = document.getElementById('word-audio-box');
+        audioBox.innerHTML = `<button class="read-btn" style="width:60px; height:60px; font-size:2rem;" onclick="speak('${pair.correct}')">🔊 點我聽題目</button>`;
+        
+        const pairContainer = document.getElementById('word-pair-container');
+        pairContainer.innerHTML = '';
+        const isLeftCorrect = Math.random() > 0.5;
+        const w1 = isLeftCorrect ? pair.correct : pair.wrong;
+        const w2 = isLeftCorrect ? pair.wrong : pair.correct;
+
+        [w1, w2].forEach(w => {
+            const btn = document.createElement('button');
+            btn.className = 'word-btn-big';
+            btn.innerText = w;
+            btn.onclick = function() {
+                if (this.parentElement.classList.contains('done')) return;
+                const isRight = (w === pair.correct);
+                if (isRight) { btn.classList.add('correct'); wordCorrect++; } 
+                else { btn.classList.add('wrong'); }
+                this.parentElement.classList.add('done');
+                setTimeout(() => {
+                    currentW++;
+                    showWordPair();
+                }, 800);
+            };
+            pairContainer.appendChild(btn);
+        });
+        document.getElementById('word-progress-fill').style.width = `${(currentW / words.length) * 100}%`;
     }
 
     function showFinalResult() {
         document.getElementById('word-container').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
-        document.getElementById('score-display').innerText = `🏆 分數：${score} / 20`;
+        document.getElementById('final-total-score').innerText = mcqCorrect + wordCorrect;
     }
 
-    // 回到大廳功能
     function goToLobby() {
-        // 重置所有數據
-        currentQ = 0;
-        score = 0;
-        wordsChecked = 0;
-        document.getElementById('next-to-result').style.display = 'none';
-        document.getElementById('progress-fill').style.width = '0%';
-        
-        // 切換畫面
         document.getElementById('result-screen').classList.remove('active');
         document.getElementById('mode-selection').classList.add('active');
     }
