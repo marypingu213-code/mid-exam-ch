@@ -11,6 +11,7 @@
             --secondary: #98D8D8;
             --bg: #FFF9E3;
             --text: #5A5A5A;
+            --accent: #FF80AB;
         }
 
         * { box-sizing: border-box; -webkit-user-select: none; touch-action: manipulation; }
@@ -27,7 +28,7 @@
 
         #app {
             width: 95%; height: 95%;
-            max-width: 900px; /* 稍微加寬以容納雙欄 */
+            max-width: 900px;
             background: white;
             border-radius: 30px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -36,13 +37,24 @@
             position: relative;
         }
 
-        .header { text-align: center; font-size: 1.5rem; margin-bottom: 10px; color: #FF80AB; font-weight: bold; }
+        .header { text-align: center; font-size: 1.5rem; margin-bottom: 10px; color: var(--accent); font-weight: bold; }
 
         #quiz-container, #word-container, #result-screen, #mode-selection { 
             flex: 1; display: none; flex-direction: column; 
         }
 
         .active { display: flex !important; }
+
+        /* 倒數計時樣式 */
+        .countdown-box {
+            background: #FFF0F5;
+            padding: 10px;
+            border-radius: 15px;
+            margin: 10px 0;
+            border: 2px dashed var(--primary);
+            font-size: 1rem;
+        }
+        #timer { color: #E91E63; font-weight: bold; font-size: 1.2rem; }
 
         /* QR Code 彈窗 */
         #qr-modal {
@@ -53,7 +65,6 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.3);
         }
 
-        /* 朗讀按鈕 */
         .read-btn {
             background: #E3F2FD; border: none; border-radius: 50%;
             width: 32px; height: 32px; font-size: 1rem;
@@ -62,7 +73,6 @@
         }
         .audio-mode .read-btn { display: inline-flex; }
 
-        /* 文意題目樣式 */
         .question-box {
             display: flex; align-items: center; font-size: 1.2rem;
             margin-bottom: 15px; padding: 15px; background: #F0F4FF; border-radius: 15px;
@@ -72,36 +82,28 @@
             flex: 1; padding: 12px; font-size: 1.05rem; border: 2px solid #EEE;
             border-radius: 15px; background: white; text-align: left;
         }
+        .answer-btn:active { background: var(--primary); color: white; }
 
-        /* 重點：語詞辨識改為「雙欄」佈局 */
-        #word-list {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 分成兩排 */
-            gap: 10px;
-            padding: 5px;
-        }
-
+        /* 語詞雙欄佈局 */
+        #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 5px; }
         .word-card {
-            display: flex; align-items: center; justify-content: flex-start;
-            padding: 8px; border: 1px solid #FFE4E1; border-radius: 12px;
-            background: #FFF9F9;
+            display: flex; align-items: center; padding: 8px; 
+            border: 1px solid #FFE4E1; border-radius: 12px; background: #FFF9F9;
         }
-
         .word-btn { 
             font-size: 1.2rem; width: 85px; margin: 0 4px; 
             border: 2px solid #EEE; border-radius: 10px; background: white; padding: 6px;
-            white-space: nowrap;
         }
 
         .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
         .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
+        .done { pointer-events: none; opacity: 0.7; }
 
-        /* 按鈕樣式 */
-        .mode-btn { padding: 20px; margin: 10px; font-size: 1.3rem; border-radius: 20px; border: none; color: white; }
+        .mode-btn { padding: 18px; margin: 8px; font-size: 1.3rem; border-radius: 20px; border: none; color: white; cursor: pointer; }
         .btn-normal { background-color: #B2DFDB; color: #00796B; }
         .btn-audio { background-color: #FFCDD2; color: #C2185B; }
-        
-        .done { pointer-events: none; opacity: 0.7; }
+        .btn-lobby { background-color: var(--secondary); color: white; margin-top: 20px; padding: 15px 40px; }
+
         .progress-bar { height: 6px; background: #EEE; border-radius: 3px; margin-bottom: 10px; }
         #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 3px; transition: width 0.3s; }
     </style>
@@ -110,37 +112,44 @@
 
 <div id="app">
     <div id="mode-selection" class="active" style="text-align: center; justify-content: center;">
-        <h1 style="color: #FF80AB; margin-bottom: 5px;">🎒 國語期中挑戰賽</h1>
-        <p>請選擇您的測驗模式</p>
+        <h1 style="color: var(--accent); margin: 0;">🎓 畢業倒數挑戰賽</h1>
+        
+        <div class="countdown-box">
+            距離 6/15 畢業典禮還有：<br>
+            <span id="timer">計算中...</span>
+        </div>
+
         <button class="mode-btn btn-normal" onclick="initApp(false)">📖 一般挑戰版</button>
         <button class="mode-btn btn-audio" onclick="initApp(true)">🔊 語音助讀版</button>
-        <div style="margin-top: 15px;">
-            <button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; font-size:0.8rem;">📱 顯示教室分享碼</button>
+        
+        <div style="margin-top: 10px;">
+            <button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">📱 顯示教室分享碼</button>
         </div>
     </div>
 
     <div id="qr-modal">
         <h3>掃描進入測驗 📲</h3>
         <div id="qrcode" style="display: flex; justify-content: center; margin: 15px;"></div>
-        <button onclick="toggleQR()" style="padding: 5px 20px; border-radius: 10px; border: 1px solid #999;">關閉</button>
+        <button onclick="toggleQR()" style="padding: 5px 20px; border-radius: 10px; border: 1px solid #999; cursor:pointer;">關閉</button>
     </div>
 
     <div id="quiz-container">
         <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div class="header" style="font-size: 1.1rem;">第一階段：文意選擇</div>
         <div id="q-box" class="question-box"></div>
         <div id="q-options" class="options-grid"></div>
     </div>
 
     <div id="word-container">
-        <div class="header" style="font-size: 1.3rem;">🎧 語詞辨識 (選出正確字詞)</div>
+        <div class="header" style="font-size: 1.1rem;">第二階段：語詞辨識</div>
         <div id="word-list"></div>
-        <button id="next-to-result" style="display:none; margin-top:15px; background:var(--secondary); color:white; padding:12px; border:none; border-radius:15px; font-size:1.1rem; width: 100%;" onclick="showFinalResult()">查看最終分數 🏁</button>
+        <button id="next-to-result" style="display:none; margin-top:15px; background:var(--secondary); color:white; padding:12px; border:none; border-radius:15px; font-size:1.1rem; width: 100%; cursor:pointer;" onclick="showFinalResult()">完成測驗 🏁</button>
     </div>
 
     <div id="result-screen" style="text-align: center; justify-content: center;">
-        <h1 id="score-display" style="font-size: 3.5rem; margin: 0;">🎉</h1>
-        <p style="font-size: 1.2rem; margin-bottom: 20px;">挑戰完成！你真的很認真喔！</p>
-        <button onclick="location.reload()" style="padding:10px 25px; border-radius:12px; border:2px solid #ccc; background: white;">重新挑戰 🔄</button>
+        <h1 id="score-display" style="font-size: 4rem; margin: 0;">🎉</h1>
+        <p style="font-size: 1.3rem;">太棒了！測驗完成！</p>
+        <button class="mode-btn btn-lobby" onclick="goToLobby()">回到大廳 🏠</button>
     </div>
 </div>
 
@@ -148,6 +157,7 @@
     let isAudioMode = false;
     let currentQ = 0;
     let score = 0;
+    let wordsChecked = 0;
 
     const questions = [
         { q: "在〈風中騎士〉一文中，作者剛開始練習騎單車時，為什麼感到手心冒汗、呼吸急促？", a: ["因為她擔心會撞到正在尿尿的阿雄", "因為單車的高度比作者本人還要高", "因為表姐教練的態度非常嚴厲", "因為路上的觀眾太多，讓她感到害羞"], c: 1 },
@@ -170,11 +180,26 @@
         { correct: "凶猛", wrong: "凶孟" }, { correct: "竅門", wrong: "竅們" }
     ];
 
-    // QR Code 初始化
-    new QRCode(document.getElementById("qrcode"), {
-        text: window.location.href,
-        width: 150, height: 150
-    });
+    // 畢業倒數計時邏輯
+    function updateCountdown() {
+        const gradDate = new Date("2026/06/15 00:00:00").getTime();
+        const now = new Date().getTime();
+        const diff = gradDate - now;
+
+        if (diff <= 0) {
+            document.getElementById("timer").innerText = "畢業快樂！🎓";
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        document.getElementById("timer").innerText = `${days} 天 ${hours} 小時`;
+    }
+    setInterval(updateCountdown, 60000);
+    updateCountdown();
+
+    // QR Code
+    new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 150, height: 150 });
 
     function toggleQR() {
         const modal = document.getElementById('qr-modal');
@@ -193,6 +218,7 @@
     function initApp(audioMode) {
         isAudioMode = audioMode;
         if (isAudioMode) document.body.classList.add('audio-mode');
+        else document.body.classList.remove('audio-mode');
         document.getElementById('mode-selection').classList.remove('active');
         document.getElementById('quiz-container').classList.add('active');
         showQuestion();
@@ -201,15 +227,11 @@
     function showQuestion() {
         if (currentQ >= questions.length) { startWordTest(); return; }
         const q = questions[currentQ];
-        document.getElementById('q-box').innerHTML = `
-            <button class="read-btn" onclick="speak('${q.q}')">🔊</button>
-            <span>${currentQ + 1}. ${q.q}</span>
-        `;
+        document.getElementById('q-box').innerHTML = `<button class="read-btn" onclick="speak('${q.q}')">🔊</button><span>${currentQ + 1}. ${q.q}</span>`;
         const opts = document.getElementById('q-options');
         opts.innerHTML = '';
         q.a.forEach((opt, idx) => {
             const row = document.createElement('div');
-            row.className = 'opt-row';
             row.style.display = 'flex'; row.style.alignItems = 'center';
             row.innerHTML = `<button class="read-btn" onclick="speak('${opt}')">🔊</button>
                 <button class="answer-btn" onclick="checkAnswer(${idx})">${String.fromCharCode(65 + idx)}. ${opt}</button>`;
@@ -228,6 +250,7 @@
         document.getElementById('quiz-container').classList.remove('active');
         document.getElementById('word-container').classList.add('active');
         const list = document.getElementById('word-list');
+        list.innerHTML = ''; // 清空舊內容
         words.forEach((pair) => {
             const div = document.createElement('div');
             div.className = 'word-card';
@@ -243,7 +266,6 @@
         });
     }
 
-    let wordsChecked = 0;
     function checkWord(btn, selected, correct) {
         if (btn.parentElement.classList.contains('done')) return;
         if (selected === correct) { btn.classList.add('correct'); score++; } else { btn.classList.add('wrong'); }
@@ -255,7 +277,21 @@
     function showFinalResult() {
         document.getElementById('word-container').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
-        document.getElementById('score-display').innerText = `🏆 總分：${score} / 20`;
+        document.getElementById('score-display').innerText = `🏆 分數：${score} / 20`;
+    }
+
+    // 回到大廳功能
+    function goToLobby() {
+        // 重置所有數據
+        currentQ = 0;
+        score = 0;
+        wordsChecked = 0;
+        document.getElementById('next-to-result').style.display = 'none';
+        document.getElementById('progress-fill').style.width = '0%';
+        
+        // 切換畫面
+        document.getElementById('result-screen').classList.remove('active');
+        document.getElementById('mode-selection').classList.add('active');
     }
 </script>
 </body>
