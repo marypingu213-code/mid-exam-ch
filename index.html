@@ -50,16 +50,15 @@
         }
         #timer { color: #E91E63; font-weight: bold; font-size: 1.5rem; }
 
-        /* 語音按鈕樣式 (重點修正) */
+        /* 語音按鈕樣式 */
         .read-btn {
             background: #E3F2FD; border: none; border-radius: 50%;
             width: 45px; height: 45px; font-size: 1.5rem;
             cursor: pointer; margin-right: 15px;
-            display: none; /* 預設隱藏，由模式控制顯示 */
+            display: none;
             align-items: center; justify-content: center; flex-shrink: 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        /* 當 body 有 .audio-mode 類別時，顯示喇叭 */
         .audio-mode .read-btn { display: inline-flex; }
 
         /* 文意題目樣式 */
@@ -84,7 +83,7 @@
             gap: 30px; margin-bottom: 40px;
         }
         .word-btn-big {
-            font-size: 5rem; /* 字體再加大 */
+            font-size: 5rem;
             padding: 30px 50px; border-radius: 30px;
             border: 5px solid #EEE; background: white;
             cursor: pointer; transition: 0.2s;
@@ -101,7 +100,7 @@
         }
         .error-item { color: #D32F2F; margin-bottom: 8px; font-size: 1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
-        /* 大廳按鈕與功能按鈕 */
+        /* 按鈕樣式 */
         .mode-btn { padding: 20px; margin: 10px; font-size: 1.5rem; border-radius: 20px; border: none; color: white; cursor: pointer; }
         .btn-normal { background-color: #B2DFDB; color: #00796B; }
         .btn-audio { background-color: #FFCDD2; color: #C2185B; }
@@ -140,9 +139,9 @@
 
     <div id="mcq-summary" style="text-align: center; justify-content: center;">
         <h2 style="color: var(--accent);">第一階段完成！✨</h2>
-        <div style="font-size: 1.6rem; margin-bottom: 10px;">答對 <span id="mcq-correct-count" style="color:green; font-weight:bold;">0</span> 題 / 共 10 題</div>
+        <div style="font-size: 1.6rem; margin-bottom: 10px;">答對 <span id="mcq-correct-count" style="color:green; font-weight:bold;">0</span> 題 / 共 20 題</div>
         <div id="error-review-area">
-            <p>需留意的題目：</p>
+            <p>需留意的題目回顧：</p>
             <div id="mcq-error-list" class="summary-list"></div>
         </div>
         <button class="btn-next" onclick="startWordTest()">進入第二階段：語詞辨識 👉</button>
@@ -160,7 +159,7 @@
     <div id="result-screen" style="text-align: center; justify-content: center;">
         <h1 style="font-size: 5rem; margin: 0;">🏆</h1>
         <h2 style="font-size: 2rem;">挑戰全數完成！</h2>
-        <div style="font-size: 2.2rem; margin-bottom: 40px; font-weight: bold;">總得分：<span id="final-total-score">0</span> / 20</div>
+        <div style="font-size: 2.2rem; margin-bottom: 40px; font-weight: bold;">總得分：<span id="final-total-score">0</span> / 40</div>
         <button class="btn-next" style="background: var(--accent); padding: 20px 60px;" onclick="goToLobby()">回到大廳 🏠</button>
     </div>
 
@@ -180,6 +179,7 @@
     let mcqResults = [];
 
     const questions = [
+        // 原有 10 題
         { q: "在〈風中騎士〉一文中，作者剛開始練習騎單車時，為什麼感到手心冒汗、呼吸急促？", a: ["因為她擔心會撞到正在尿尿的阿雄", "因為單車的高度比作者本人還要高", "因為表姐教練的態度非常嚴厲", "因為路上的觀眾太多，讓她感到害羞"], c: 1 },
         { q: "〈風中騎士〉的結局中，作者摔車並造成阿雄受傷的主要技術原因是？", a: ["教練完全沒有教導如何煞車", "單車的鏈條突然斷裂失去控制", "作者為了展現放開雙手的特技", "作者分心去回應雜貨店阿秀的招手"], c: 0 },
         { q: "在〈達駭黑熊〉中，爺爺為何在年輕時殺掉黑熊後，有一段時間不敢上山打獵？", a: ["因為他擔心會再次遇到黑熊的報復", "因為布農族傳統忌殺黑熊，內心充滿懊悔", "因為他在搏鬥中受了重傷無法行動", "因為他失去了最好的獵犬與裝備"], c: 1 },
@@ -189,15 +189,33 @@
         { q: "華特．迪士尼的故事告訴我們，當原有的夢想「此路不通」時應該如何面對？", a: ["對辭退他的公司提出法律訴訟", "放棄繪畫，轉向完全不相關的商業領域", "選擇另一個岔口向前，可能看見未預料的美景", "堅持原有的目標直到對方認可為止"], c: 2 },
         { q: "在〈蒂烈娜〉中，蒂烈娜最初為什麼認為自己是族群裡的「失敗者」？", a: ["因為她被族群中的長輩驅逐", "因為她找不到回家的路", "因為只有她無法躍過激流", "因為她的銀白色鱗片不夠閃亮"], c: 2 },
         { q: "蒂烈娜在夢境（或幻象）中學到了什麼，讓她最後能成功躍過激流？", a: ["星星們給了她一雙隱形的翅膀", "學會了如何在水中長時間閉氣", "她發現了激流下方的祕密通道", "展現出不畏疼痛、奮力一躍的決心"], c: 3 },
-        { q: "綜合這幾篇文本，關於「克服困難」與「夢想」的描述，下列敘述何者正確？", a: ["夢想一旦設定，就不可以有任何變動或調整", "只要有教練，就絕對不會遭遇任何危險", "只有天賦異稟的人才有可能實現遠大的目標", "失敗是過程的一部分，重新站起來是前行的方式"], c: 3 }
+        { q: "綜合這幾篇文本，關於「克服困難」與「夢想」的描述，下列敘述何者正確？", a: ["夢想一旦設定，就不可以有任何變動或調整", "只要有教練，就絕對不會遭遇任何危險", "只有天賦異稟的人才有可能實現遠大的目標", "失敗是過程的一部分，重新站起來是前行的方式"], c: 3 },
+        // 新增 10 題 (依圖片內容與解答設定)
+        { q: "在「風中騎士」文中，作者學騎車感到緊張的原因是什麼？", a: ["天氣太冷會手抖", "車子比人還要高", "怕被路邊的狗追", "教練長得很可怕"], c: 1 },
+        { q: "「風中騎士」文中，最後發生的意外是因為表姐忘了教什麼？", a: ["如何使用煞車", "如何上下車", "如何修理輪胎", "如何向人招手"], c: 0 },
+        { q: "「達駭黑熊」文中，爺爺臉上的疤痕是怎麼留下的？", a: ["不小心摔下山崖", "升火時被火燙傷", "被倒塌的樹壓傷", "與黑熊激烈扭打"], c: 3 },
+        { q: "布農族對黑熊的傳統忌諱是什麼？", a: ["不可以隨便殺熊", "不能在山裡唱歌", "不能在山壁躲雨", "不能背小熊回家"], c: 0 },
+        { q: "齊柏林為了拍攝臺灣美景，克服了什麼困難？", a: ["對水的恐懼感", "身體殘疾的限制", "沒錢買攝影器材", "嚴重的懼高症"], c: 3 },
+        { q: "陳彥博成為亞洲首位完成世界七大洲極地賽事的選手，他原本是什麼選手？", a: ["國內馬拉松選手", "動畫製作工程師", "專業籃球球員", "職業登山專家"], c: 0 },
+        { q: "華特．迪士尼最初被公司辭退的原因是什麼？", a: ["被嫌棄沒有創意", "上班經常會遲到", "畫不出米老鼠", "不願意學習動畫"], c: 0 },
+        { q: "蒂烈娜在故事中是什麼樣的生物？", a: ["在天空飛的小鳥", "生活在銀河的小星", "山林裡的黑熊", "七家灣溪的鯝魚"], c: 3 },
+        { q: "蒂烈娜最後如何成功越過激流的水牆？", a: ["順著溪流游到下游", "等雨停後水流變小", "請求小星星推一把", "咬緊牙關用力擺動"], c: 3 },
+        { q: "根據文章內容，哪位運動員會最早到場、最晚離開練球場？", a: ["科懷．雷納德", "達駭黑熊", "齊柏林", "陳彥博"], c: 0 }
     ];
 
     const words = [
+        // 原有 10 組
         { correct: "長褲", wrong: "長庫" }, { correct: "提供", wrong: "提拱" },
         { correct: "黑熊", wrong: "黑能" }, { correct: "骸骨", wrong: "駭骨" },
         { correct: "領域", wrong: "領或" }, { correct: "強勁", wrong: "強經" },
         { correct: "敏捷", wrong: "敏睫" }, { correct: "楷模", wrong: "楷摸" },
-        { correct: "凶猛", wrong: "凶孟" }, { correct: "竅門", wrong: "竅們" }
+        { correct: "凶猛", wrong: "凶孟" }, { correct: "竅門", wrong: "竅們" },
+        // 新增 10 組
+        { correct: "矛盾", wrong: "矛頓" }, { correct: "娛樂", wrong: "娛落" },
+        { correct: "威脅", wrong: "威協" }, { correct: "步伐", wrong: "步閥" },
+        { correct: "嚮往", wrong: "響往" }, { correct: "球員", wrong: "球園" },
+        { correct: "披風", wrong: "批風" }, { correct: "軼聞", wrong: "跌聞" },
+        { correct: "邏輯", wrong: "邏緝" }, { correct: "摔跤", wrong: "摔交" }
     ];
 
     function updateCountdown() {
@@ -224,7 +242,6 @@
         isAudioMode = audioMode;
         if (isAudioMode) document.body.classList.add('audio-mode');
         else document.body.classList.remove('audio-mode');
-        
         currentQ = 0; mcqCorrect = 0; mcqResults = [];
         document.getElementById('mode-selection').classList.remove('active');
         document.getElementById('quiz-container').classList.add('active');
@@ -234,9 +251,7 @@
     function showQuestion() {
         if (currentQ >= questions.length) { showMCQSummary(); return; }
         const q = questions[currentQ];
-        // 渲染題目區，包含報讀按鈕
         document.getElementById('q-box').innerHTML = `<button class="read-btn" onclick="speak('${q.q}')">🔊</button><span>${currentQ + 1}. ${q.q}</span>`;
-        
         const opts = document.getElementById('q-options');
         opts.innerHTML = '';
         q.a.forEach((opt, idx) => {
@@ -263,7 +278,7 @@
         errList.innerHTML = '';
         const errors = mcqResults.filter(r => !r.isRight);
         if (errors.length === 0) {
-            errList.innerHTML = '<div style="color:green; text-align:center; font-size:1.2rem;">恭喜全部答對！太棒了！🌟</div>';
+            errList.innerHTML = '<div style="color:green; text-align:center; font-size:1.2rem;">恭喜全部答對！第一階段滿分！🌟</div>';
         } else {
             errors.forEach((r) => {
                 const div = document.createElement('div');
@@ -284,17 +299,13 @@
     function showWordPair() {
         if (currentW >= words.length) { showFinalResult(); return; }
         const pair = words[currentW];
-        
-        // 報讀按鈕修正
         const audioBox = document.getElementById('word-audio-box');
         audioBox.innerHTML = `<button class="read-btn" style="width:70px; height:70px; font-size:2.2rem; margin:0;" onclick="speak('${pair.correct}')">🔊 點我讀音</button>`;
-        
         const pairContainer = document.getElementById('word-pair-container');
         pairContainer.innerHTML = '';
         const isLeftCorrect = Math.random() > 0.5;
         const w1 = isLeftCorrect ? pair.correct : pair.wrong;
         const w2 = isLeftCorrect ? pair.wrong : pair.correct;
-
         [w1, w2].forEach(w => {
             const btn = document.createElement('button');
             btn.className = 'word-btn-big';
@@ -305,7 +316,6 @@
                 if (isRight) { this.classList.add('correct'); wordCorrect++; } 
                 else { this.classList.add('wrong'); }
                 pairContainer.classList.add('done');
-                
                 setTimeout(() => {
                     pairContainer.classList.remove('done');
                     currentW++;
@@ -323,18 +333,11 @@
         document.getElementById('final-total-score').innerText = mcqCorrect + wordCorrect;
     }
 
-    // 回到大廳邏輯修正
     function goToLobby() {
-        // 重置數據
         currentQ = 0; mcqCorrect = 0; wordCorrect = 0; currentW = 0; mcqResults = [];
-        
-        // 隱藏所有面板
         const panels = ['quiz-container', 'word-container', 'result-screen', 'mcq-summary'];
         panels.forEach(id => document.getElementById(id).classList.remove('active'));
-        
-        // 顯示大廳
         document.getElementById('mode-selection').classList.add('active');
-        // 移除 body 的 audio-mode class 防止混亂
         document.body.classList.remove('audio-mode');
     }
 </script>
