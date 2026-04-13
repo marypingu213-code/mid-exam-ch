@@ -41,30 +41,27 @@
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .answer-btn {
             display: flex; align-items: center; padding: 12px; font-size: 1.2rem; 
-            border: 2px solid #EEE; border-radius: 15px; background: white; text-align: left;
+            border: 2px solid #EEE; border-radius: 15px; background: white; text-align: left; transition: 0.3s;
         }
         .answer-btn:active { background: var(--primary); color: white; }
-        .word-display-area { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .word-btn-big {
             font-size: 6rem; padding: 30px 50px; border-radius: 30px; border: 5px solid #EEE;
             background: white; cursor: pointer; min-width: 300px; text-align: center;
         }
-        .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
-        .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
+        .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #2E7D32 !important; }
+        .wrong { background-color: #FFCDD2 !important; border-color: #F44336 !important; color: #C62828 !important; }
         .summary-list {
             text-align: left; background: #f9f9f9; padding: 15px; border-radius: 15px;
             overflow-y: auto; max-height: 280px; margin: 10px 0;
         }
         .error-item { color: #D32F2F; margin-bottom: 10px; font-size: 0.95rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .mode-btn { padding: 18px; margin: 8px; font-size: 1.4rem; border-radius: 20px; border: none; color: white; cursor: pointer; }
-        .btn-blue { background-color: #4FC3F7; } .btn-green { background-color: #81C784; }
+        .mode-btn { padding: 15px; margin: 5px; font-size: 1.3rem; border-radius: 20px; border: none; color: white; cursor: pointer; min-width: 200px; }
+        .btn-blue { background-color: #4FC3F7; } .btn-purple { background-color: #BA68C8; } .btn-green { background-color: #81C784; }
         .btn-normal { background-color: #B2DFDB; color: #00796B; } .btn-audio { background-color: #FFCDD2; color: #C2185B; }
         .progress-bar { height: 8px; background: #EEE; border-radius: 4px; margin-bottom: 10px; }
         #progress-fill { height: 100%; width: 0%; background: var(--secondary); border-radius: 4px; transition: width 0.3s; }
-        #qr-modal {
-            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border: 5px solid var(--secondary); padding: 20px; border-radius: 20px; z-index: 100; text-align: center;
-        }
+        #qr-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 5px solid var(--secondary); padding: 20px; border-radius: 20px; z-index: 100; text-align: center; }
+        #strict-hint { color: #F44336; font-weight: bold; display: none; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -73,31 +70,29 @@
     <div id="mode-selection" class="active" style="text-align: center; justify-content: center;">
         <h1 style="color: var(--accent); margin: 0;">🎓 畢業倒數挑戰賽</h1>
         <div class="countdown-box">距離 6/15 畢業典禮還有：<br><span id="timer">計算中...</span></div>
-        <div style="display:flex; flex-direction:column; align-items:center;">
-            <p>請先選擇測驗版本：</p>
-            <div style="display:flex;">
-                <button class="mode-btn btn-blue" onclick="selectLevel(10)">基礎 10 題版</button>
-                <button class="mode-btn btn-green" onclick="selectLevel(30)">魔王 30 題版</button>
-            </div>
-        </div>
-        <div style="margin-top: 15px;"><button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; cursor:pointer;">📱 顯示教室分享碼</button></div>
+        <p>請選擇測驗關卡：</p>
+        <button class="mode-btn btn-blue" onclick="selectLevel(10, false)">基礎 10 題版</button>
+        <button class="mode-btn btn-purple" onclick="selectLevel(20, true)">進階 20 題 (精熟版)</button>
+        <button class="mode-btn btn-green" onclick="selectLevel(30, false)">魔王 30 題版</button>
+        <div style="margin-top: 15px;"><button onclick="toggleQR()" style="background:none; border:1px solid #ddd; padding:5px 10px; border-radius:8px; cursor:pointer;">📱 顯示分享碼</button></div>
     </div>
 
     <div id="level-selection" style="text-align: center; justify-content: center;">
-        <h2 id="selected-level-title">正在準備測驗...</h2>
+        <h2 id="selected-level-title">正在準備...</h2>
         <button class="mode-btn btn-normal" onclick="initQuiz(false)">📖 一般挑戰版</button>
         <button class="mode-btn btn-audio" onclick="initQuiz(true)">🔊 語音助讀版</button>
-        <button onclick="goToLobby()" style="margin-top:20px; background:none; border:none; text-decoration:underline; cursor:pointer;">返回重新選擇題目量</button>
+        <button onclick="goToLobby()" style="margin-top:20px; background:none; border:none; text-decoration:underline; cursor:pointer;">返回</button>
     </div>
 
     <div id="quiz-container">
+        <div id="strict-hint">❌ 答錯了，請再仔細讀一遍，重新選擇！</div>
         <div class="progress-bar"><div id="progress-fill"></div></div>
         <div id="q-box" class="question-box"></div>
         <div id="q-options" class="options-grid"></div>
     </div>
 
     <div id="mcq-summary" style="text-align: center; justify-content: center;">
-        <h2 style="color: var(--accent);">測驗回顧 ✨</h2>
+        <h2 id="summary-title" style="color: var(--accent);">測驗完成！</h2>
         <div style="font-size: 1.5rem;">答對 <span id="mcq-correct-count" style="color:green; font-weight:bold;">0</span> 題 / 共 <span id="mcq-total-count">0</span> 題</div>
         <div id="mcq-error-list" class="summary-list"></div>
         <button class="mode-btn btn-blue" onclick="startWordTest()">下一步：超大字語詞辨識 👉</button>
@@ -105,26 +100,22 @@
 
     <div id="word-container">
         <div class="progress-bar"><div id="word-progress-fill" style="height:100%; width:0%; background:var(--primary); border-radius:4px;"></div></div>
-        <div class="word-display-area">
-            <div id="word-audio-box"></div>
-            <div id="word-pair-container" style="display:flex; gap:40px; margin:40px 0;"></div>
-            <p style="font-size:1.5rem; color:#999;">選出正確的字詞</p>
-        </div>
+        <div class="word-display-area"><div id="word-audio-box"></div><div id="word-pair-container" style="display:flex; gap:40px; margin:40px 0;"></div><p style="font-size:1.5rem; color:#999;">選出正確的字詞</p></div>
     </div>
 
     <div id="result-screen" style="text-align: center; justify-content: center;">
         <h1 style="font-size: 5rem; margin: 0;">🏆</h1>
-        <h2>全數完成！</h2>
-        <div style="font-size: 2rem; margin-bottom: 30px;">總得分：<span id="final-total-score">0</span></div>
+        <h2>恭喜通關！</h2>
+        <div style="font-size: 2rem; margin-bottom: 30px;">得分：<span id="final-total-score">0</span></div>
         <button class="mode-btn btn-blue" style="padding:15px 60px;" onclick="goToLobby()">回到大廳 🏠</button>
     </div>
 
-    <div id="qr-modal"><h3>掃描進入測驗</h3><div id="qrcode" style="display:flex; justify-content:center; margin:15px;"></div><button onclick="toggleQR()">關閉</button></div>
+    <div id="qr-modal"><h3>掃描進入</h3><div id="qrcode" style="display:flex; justify-content:center; margin:15px;"></div><button onclick="toggleQR()">關閉</button></div>
 </div>
 
 <script>
     let isAudioMode = false; let currentQ = 0; let mcqCorrect = 0; let currentW = 0; let wordCorrect = 0;
-    let mcqResults = []; let selectedTotal = 10;
+    let mcqResults = []; let selectedTotal = 10; let isStrictLevel = false;
 
     const questions10 = [
         { q: "在〈風中騎士〉一文中，作者剛開始練習騎單車時，為什麼感到手心冒汗、呼吸急促？", a: ["因為她擔心會撞到正在尿尿的阿雄", "因為單車的高度比作者本人還要高", "因為表姐教練的態度非常嚴厲", "因為路上的觀眾太多，讓她感到害羞"], c: 1 },
@@ -139,37 +130,60 @@
         { q: "綜合這幾篇文本，關於「克服困難」與「夢想」的描述，下列敘述何者正確？", a: ["夢想一旦設定，就不可以有任何變動或調整", "只要有教練，就絕對不會遭遇任何危險", "只有天賦異稟的人才有可能實現遠大的目標", "失敗是過程的一部分，重新站起來是前行的方式"], c: 3 }
     ];
 
+    const questions20 = [
+        { q: "在《風中騎士》中,作者在練車前穿上兩件特厚長褲的原因是什麼?", a: ["為了讓自己看起來更有騎士的威嚴", "因為鄉下的清晨氣溫非常寒冷", "為了在摔跤時能減輕疼痛感", "因為那是表姐規定的練車服裝"], c: 2 },
+        { q: "〈風中騎士》的作者最後為什麼會撞上阿雄?", a: ["因為作者當時在向雜貨店的阿秀招手", "因為阿雄突然衝到路中央擋住去路", "因為單車的煞車零件突然壞掉了", "因為表姐沒有教導如何使用煞車"], c: 3 },
+        { q: "在《達駭黑熊》中,爺爺將「山林」比喻成一本書,這代表什麼含意?", a: ["山林裡的各種痕跡都包含了豐富的知識", "爺爺在山裡收藏了許多珍貴的書籍", "爺爺讀過許多關於自然科學的專業著作", "爺爺希望孫子能把打獵的故事寫成書"], c: 0 },
+        { q: "關於爺爺獵殺黑熊後的處理方式,下列敘述何者正確?", a: ["他將黑熊的骸骨埋入土中回歸自然", "他將熊皮做成大衣送給孫子達駭", "他直接將黑熊棄置在山林中不予理會", "他將黑熊帶回部落與大家分享食物"], c: 0 },
+        { q: "在《達駭黑熊》故事結尾,奶奶為什麼說「這是最棒的收穫」?", a: ["因為達駭終於學會了如何獨自打獵", "因為他們救了小黑熊並讓牠與母親團聚", "因為爺爺和達駭獵到了許多大型動物", "因為他們在山林裡找到了珍貴的草藥"], c: 1 },
+        { q: "齊柏林先生是如何克服自己的弱點來達成目標的?", a: ["他聘請了攝影師代替他上天拍照", "他選擇在地面使用長焦鏡頭拍攝", "他透過服用藥物來治療懼高症", "他憑藉著對土地的熱愛,忍受懼高不斷飛行"], c: 3 },
+        { q: "超馬選手陳彥博的逐夢過程給我們什麼樣的啟示?", a: ["不斷挑戰自我極限,在不同階段設立新目標", "只要有天分,不需要練習也能成功", "應該專注單一領域,不要更換目標", "出國比賽比在國內比賽更容易獲得成就感"], c: 0 },
+        { q: "雷納德學習「籃球之神」喬丹的哪一部分最令他成功?", a: ["學習喬丹在媒體面前的說話技巧", "學習喬丹購買昂貴籃球裝備的習慣", "學習喬丹動作技巧與勤奮苦練的精神", "學習喬丹在比賽後提早離開休息"], c: 2 },
+        { q: "華特·迪士尼創作出米老鼠的契機是什麼?", a: ["他天生就是動畫大師", "他在廣告公司獲得了老闆的賞識", "他在新公司接觸到動畫製作產生的創意", "他在失業期間觀察家中跑出的小老鼠"], c: 2 },
+        { q: "主角蒂烈娜最初為什麼認為自己是族群裡的失敗者?", a: ["因為她的體色跟其他鯛魚長得不一樣", "因為她不聽從族長巴掌大星星的指揮", "因為她不小心流落到銀河裡回不去", "因為她無法像同伴一樣成功越過激流"], c: 3 },
+        { q: "在《蒂烈娜》中,「銀河衝浪手」對蒂烈娜產生了什麼影響?", a: ["教導她如何利用翅膀在空中飛行", "透過共同挑戰星浪,重建信心與決心", "給了她神奇披風,獲得超能力", "讓她明白失敗是正常的,不需要再努力"], c: 1 },
+        { q: "蒂烈娜醒來後,如何面對七家灣溪的急流?", a: ["她沿著溪水往下游游去", "她咬緊牙關,帶著不再放棄的決心全力衝刺", "她發現無法克服,只好選擇離開", "她等待同伴下來幫她推上激流"], c: 1 },
+        { q: "《達駭黑熊》中,爺爺吟唱「熊歌」的目的最可能是什麼?", a: ["慶祝打獵終於有了一點點收穫", "為了嚇跑附近危險野獸", "這是布農族黎明時必須進行的儀式", "為了通知黑熊媽媽,牠的孩子在這裡"], c: 3 },
+        { q: "文中提到齊柏林「花了二十多年時間」,這強調了逐夢的哪一種特質?", a: ["毅力", "金錢", "幸運", "天分"], c: 0 },
+        { q: "「不摔上幾次,哪能學得成?」這句話體現了什麼學習觀點?", a: ["只要教練好,學生可以完全不摔跤", "失敗是為了證明不適合這項運動", "學習過程中,挫折與失敗是必經的階段", "如果怕受傷,就應該尋找更安全的娛樂"], c: 2 },
+        { q: "文中提到「此路不通時,選擇另一個岔口」,這是在建議讀者:", a: ["遇到困難就應該馬上放棄夢想", "夢想是不切實際的", "應該一直堅持原本的路,即使走不通", "在遭遇挫折時可以彈性調整方向"], c: 3 },
+        { q: "在《蒂烈娜》中,結尾「閃耀著金光」的披風,最象徵什麼意義?", a: ["留在心中的勇氣與逐夢的決心", "星星們留下來的黃金寶藏", "蒂烈娜成功後獲得的獎品", "那是陽光照射在水面上的倒影而已"], c: 0 },
+        { q: "綜合素材,下列哪一個特質是所有主角共同擁有的?", a: ["豐富的山林知識", "過人的體力", "面對挑戰的勇氣與不輕易放棄的精神", "高超的繪畫技巧"], c: 2 },
+        { q: "在《達駭黑熊》中,達駭的名字來源為何?", a: ["來自於他拯救的那隻小黑熊", "傳承自英勇的爺爺", "因為他長得黑黑壯壯像黑熊", "是他在獵寮裡自己想出來的"], c: 1 },
+        { q: "下列關於夢想的敘述,哪一項最符合素材觀點?", a: ["只要有夢想,人生就會一帆風順", "夢想是遠方的目標,能鼓舞在前行中自在前行", "夢想是專屬於成功人士的特權", "夢想一定要很偉大,否則不值得追求"], c: 1 }
+    ];
+
     const questions30 = [
         { q: "在《風中騎士》中,作者剛開始練習騎單車時的心情如何?", a: ["興奮期待", "充滿自信", "緊張害怕", "毫不在意"], c: 2 },
-        { q: "為了防止摔跤受傷,作者練習騎車時做了什麼準備?", a: ["戴上全套護膝護肘", "只在草地上練習", "要求教練全程扶著手把", "穿上兩件特厚長褲"], c: 3 },
-        { q: "《風中騎士》中,表姐對於學騎車的「矛盾理論」是什麼?", a: ["要作者看前面,自己卻看後面", "叫作者用力踩,卻又叫作者慢一點", "說車子很輕,卻又抱怨車子很重", "保證不讓作者摔,卻又說不摔學不成"], c: 3 },
-        { q: "作者最後為什麼會撞上五歲的阿雄?", a: ["阿雄突然衝到路中間", "教練忘了教如何煞車", "作者分心看風景", "車子零件突然壞掉"], c: 1 },
-        { q: "《達駭黑熊》中,爺爺「達駭黑熊」的外號由來與什麼有關?", a: ["他長得像故事書裡的黑熊", "臉上的疤痕與英勇的性格", "他喜歡穿黑色的衣服", "他曾經養過一隻黑熊"], c: 1 },
-        { q: "爺爺教導作者的「山林智慧」中,不包括下列哪一項?", a: ["認識地形與地名", "從糞便判斷動物種類", "辨識植物是否有毒", "使用現代導航系統"], c: 3 },
-        { q: "關於布農族對於黑熊的傳統觀念,下列敘述何者正確?", a: ["黑熊的骨骸必須製成裝飾品", "黑熊肉是祭典必備美食", "獵殺越多黑熊越英雄", "忌諱獵殺黑熊"], c: 3 },
-        { q: "作者與爺爺是如何發現受傷的小黑熊的?", a: ["爺爺透過糞便追蹤到的", "在雷雨中看見杉木倒下壓住牠", "聽見小熊在山洞裡求救", "跟蹤黑熊媽媽找到的"], c: 1 },
-        { q: "爺爺最後稱讚作者是真正的「達駭黑熊」,主因是什麼?", a: ["作者學會了爺爺所有的山林知識", "作者展現了守護與照顧生命的勇氣", "作者成功唱出了優美的熊歌", "作者第一次打獵就抓到黑熊"], c: 1 },
-        { q: "在關於夢想的文本中,「夢想」被比喻為什麼?", a: ["遠方的目標", "轉瞬即逝的流星", "裝滿財寶的箱子", "沉重的包袱"], c: 0 },
-        { q: "齊柏林導演為了拍攝臺灣,克服了哪種生理恐懼?", a: ["暈機", "懼高症", "幽閉恐懼症", "怕水"], c: 1 },
-        { q: "超馬選手陳彥博達成的亞洲首位紀錄是什麼?", a: ["一年內跑完世界一百座名山", "贏得奧運馬拉松金牌", "成為全球跑最快的人", "完成世界七大洲、八大站極地超馬賽事"], c: 3 },
-        { q: "NBA 球星雷納德除了動作,還向「籃球之神」喬丹學習了什麼?", a: ["經營個人品牌的方法", "接受媒體採訪的技巧", "勤奮練習的精神", "華麗的穿衣風格"], c: 2 },
-        { q: "華特·迪士尼當初為何被廣告公司辭退?", a: ["他想畫漫畫卻不畫廣告", "他經常上班遲到", "被嫌棄沒有創意", "公司的經營狀況不佳"], c: 2 },
-        { q: "華特·迪士尼對於「跌倒」的態度是什麼?", a: ["跌倒說明自己不適合這個領域", "為了不跌倒,應該更小心謹慎", "跌倒了就要趕快換一條路走", "重新站起來是繼續前行的方式"], c: 3 },
-        { q: "在《蒂烈娜》中,故事的場景主要發生在哪裡?", a: ["太平洋深處", "淡水河口", "七家灣溪", "日月潭"], c: 2 },
-        { q: "蒂烈娜在故事一開始時,為什麼感到沮喪?", a: ["無法像同伴一樣躍過激流", "迷失了回家的路", "找不到足夠的食物", "被兇猛的大魚追趕"], c: 0 },
-        { q: "「銀河衝浪手」小星星們掉落溪谷的原因是什麼?", a: ["星星的壽命到了,自然墜落", "隊長緊急煞車導致大家掉下來", "他們想下來跟蒂烈娜玩", "被銀河裡的怪獸推倒"], c: 1 },
-        { q: "蒂烈娜在銀河中衝浪時學會了什麼最重要的事?", a: ["如何製作美麗的披風", "星星們平常吃些什麼", "如何辨識北極星的方向", "在困難中堅持與努力前進"], c: 3 },
-        { q: "故事最後,蒂烈娜成功躍過激流時,作者如何形容她的樣子?", a: ["像一片飄落的樹葉", "像一塊沉重的石頭", "像箭頭般跳上天空", "像一隻受驚的飛鳥"], c: 2 },
-        { q: "蒂烈娜醒來後看見「一件披風正順流而下」,這象徵什麼?", a: ["夢境與現實的微妙聯繫", "有人在溪邊洗衣服遺忘的", "新的危險即將到來", "垃圾汙染了溪流"], c: 0 },
-        { q: "綜合所有文本,作者想要傳達的共同主題最接近下列何者?", a: ["聽從長輩教導才能成功", "名聲是人一生中追求的最高榮譽", "堅持不懈,努力追求夢想", "大自然的環境保護很重要"], c: 2 },
-        { q: "在《風中騎士》中,作者提到「有志者事竟成」是誰常說的?", a: ["雜貨店的阿秀", "阿雄", "老師", "表姐"], c: 2 },
-        { q: "爺爺在獵寮煮晚餐時,主要是利用什麼水?", a: ["接雨水", "礦泉水", "小黑熊身上的水", "溪邊挑來的水"], c: 0 },
-        { q: "爺爺為什麼在殺死黑熊後,有一段時間不敢上山打獵?", a: ["害怕被警察抓走", "內心感到懊悔與自責", "森林裡的動物都跑光了", "受傷太重無法行動"], c: 1 },
-        { q: "文中提到的「獵寮」被形容為什麼?", a: ["關押野生動物的籠子", "買賣毛皮的市場", "獵人在山林裡的家", "儲放獵物的倉庫"], c: 2 },
-        { q: "關於逐夢路上的「楷模」,文中的觀點是什麼?", a: ["能幫助我們掌握要領,離夢想近一點", "隨便選一個有名的人當楷模即可", "楷模會阻礙我們發揮自己的創意", "一定要達到跟楷模一樣的高度才算成功"], c: 0 },
-        { q: "華特·迪士尼第一次接觸「動畫製作」是在什麼時候?", a: ["在廣告公司工作的第一天", "被前一家公司辭退後進入新公司時", "與朋友去電影院看戲時", "小時候在學校的美術課"], c: 1 },
-        { q: "蒂烈娜在銀河中衝浪時,必須跟隨誰的引導?", a: ["水中的月亮倒影", "小星星們", "她的族群隊長", "一隻巨大的老鷹"], c: 1 },
-        { q: "「擁夢在心、逐夢踏實」這句話建議我們當什麼樣的人?", a: ["只看終點不看過程的參賽者", "總是躲避失敗的膽小鬼", "等待機會降臨的幸運兒", "樂於拾起每片風景的旅人"], c: 3 }
+        { q: "為了防止摔跤受傷,作者練習騎車時做了什麼準備?", a: ["戴上護具", "在草地練習", "教練扶手把", "穿兩件特厚長褲"], c: 3 },
+        { q: "表姐學騎車的「矛盾理論」是什麼?", a: ["看前面卻看後面", "踩用力卻慢一點", "車很輕卻說很重", "保證不摔卻說不摔學不成"], c: 3 },
+        { q: "作者最後為什麼會撞上五歲的阿雄?", a: ["阿雄衝路中間", "教練忘了教煞車", "看風景分心", "車壞掉"], c: 1 },
+        { q: "爺爺「達駭黑熊」的外號由來與什麼有關?", a: ["像故事書的熊", "疤痕與英勇性格", "穿黑衣", "養黑熊"], c: 1 },
+        { q: "爺爺教導的「山林智慧」中,不包括下列哪一項?", a: ["認地形地名", "糞便辨識", "辨識毒草", "現代導航"], c: 3 },
+        { q: "關於布農族黑熊觀念,下列敘述何者正確?", a: ["骨骸製飾品", "熊肉必備", "獵殺是英雄", "忌諱獵殺黑熊"], c: 3 },
+        { q: "作者與爺爺是如何發現受傷的小黑熊的?", a: ["糞便追蹤", "倒下的杉木壓住牠", "山洞求救", "跟蹤黑熊媽"], c: 1 },
+        { q: "爺爺稱讚作者是真正「達駭黑熊」的主因?", a: ["學會山林知識", "守護生命的勇氣", "唱熊歌", "第一次打獵抓到熊"], c: 1 },
+        { q: "夢想被比喻為什麼?", a: ["遠方的目標", "流星", "財寶箱", "包袱"], c: 0 },
+        { q: "齊柏林克服了哪種生理恐懼?", a: ["暈機", "懼高症", "幽閉恐懼", "怕水"], c: 1 },
+        { q: "陳彥博亞洲首位紀錄是?", a: ["跑百岳", "奧運金牌", "最快跑者", "完成世界七大洲、八大站極地超馬"], c: 3 },
+        { q: "雷納德向喬丹學習了什麼?", a: ["個人品牌", "採訪技巧", "勤奮練習精神", "穿衣風格"], c: 2 },
+        { q: "迪士尼為何被廣告公司辭退?", a: ["不畫廣告", "遲到", "嫌棄沒創意", "公司倒閉"], c: 2 },
+        { q: "迪士尼對「跌倒」的態度是什麼?", a: ["不適合", "小心謹慎", "換路走", "重新站起來是前行的方式"], c: 3 },
+        { q: "《蒂烈娜》場景主要在哪?", a: ["太平洋", "淡水河", "七家灣溪", "日月潭"], c: 2 },
+        { q: "蒂烈娜一開始沮喪的原因?", a: ["無法躍過激流", "迷路", "沒食物", "大魚追"], c: 0 },
+        { q: "小星星墜落的原因?", a: ["壽命到", "隊長緊急煞車", "想玩", "怪獸推"], c: 1 },
+        { q: "蒂烈娜在銀河衝浪學會最重大的事?", a: ["做披風", "星星吃什麼", "認北極星", "困難中堅持努力"], c: 3 },
+        { q: "跳上激流的樣子被形容為?", a: ["落葉", "石頭", "箭頭般跳上天", "受驚飛鳥"], c: 2 },
+        { q: "金光披風象徵?", a: ["夢境與現實聯繫", "遺忘衣物", "新危險", "汙染"], c: 0 },
+        { q: "共同主題最接近?", a: ["聽長輩", "名聲", "堅持追求夢想", "環保"], c: 2 },
+        { q: "「有志者事竟成」是誰常說的?", a: ["阿秀", "阿雄", "老師", "表姐"], c: 2 },
+        { q: "獵寮煮晚餐主要利用?", a: ["接雨水", "礦泉水", "熊身上的水", "溪水"], c: 0 },
+        { q: "爺爺殺死黑熊後一段時間不敢打獵?", a: ["怕警察", "內心懊悔自責", "動物跑光", "受傷重"], c: 1 },
+        { q: "「獵寮」被形容為?", a: ["籠子", "市場", "山林裡的家", "倉庫"], c: 2 },
+        { q: "「楷模」觀點是?", a: ["幫掌握要領", "隨便選", "阻礙創意", "要達一樣高"], c: 0 },
+        { q: "迪士尼第一次接觸「動畫」?", a: ["工作第一天", "被辭退進新公司", "看電影", "美術課"], c: 1 },
+        { q: "蒂烈娜隨誰引導?", a: ["月亮", "小星星", "隊長", "老鷹"], c: 1 },
+        { q: "「逐夢踏實」建議當?", a: ["參賽者", "膽小鬼", "幸運兒", "拾起風景的旅人"], c: 3 }
     ];
 
     const wordData = [
@@ -179,9 +193,9 @@
         { correct: "竅門", wrong: "竅們" }
     ];
 
-    function selectLevel(num) {
-        selectedTotal = num;
-        document.getElementById('selected-level-title').innerText = `已選擇：${num} 題挑戰關卡`;
+    function selectLevel(num, strict) {
+        selectedTotal = num; isStrictLevel = strict;
+        document.getElementById('selected-level-title').innerText = `已選擇：${num} 題${strict ? '(精熟版)' : ''}`;
         document.getElementById('mode-selection').classList.remove('active');
         document.getElementById('level-selection').classList.add('active');
     }
@@ -190,7 +204,6 @@
         isAudioMode = audio;
         if (isAudioMode) document.body.classList.add('audio-mode');
         else document.body.classList.remove('audio-mode');
-        
         currentQ = 0; mcqCorrect = 0; mcqResults = [];
         document.getElementById('level-selection').classList.remove('active');
         document.getElementById('quiz-container').classList.add('active');
@@ -198,10 +211,14 @@
     }
 
     function showQuestion() {
-        const data = (selectedTotal === 10) ? questions10 : questions30;
+        let data = questions10;
+        if (selectedTotal === 20) data = questions20;
+        if (selectedTotal === 30) data = questions30;
+        
         if (currentQ >= data.length) { showMCQSummary(); return; }
         
         const q = data[currentQ];
+        document.getElementById('strict-hint').style.display = 'none';
         document.getElementById('q-box').innerHTML = `<button class="read-btn" onclick="speak('${q.q}')">🔊</button><span>${currentQ + 1}. ${q.q}</span>`;
         const opts = document.getElementById('q-options'); opts.innerHTML = '';
         
@@ -210,9 +227,19 @@
             btn.innerHTML = `<button class="read-btn" onclick="event.stopPropagation(); speak('${opt}')">🔊</button><span>${String.fromCharCode(65 + idx)}. ${opt}</span>`;
             btn.onclick = () => {
                 const right = (idx === q.c);
-                if (right) mcqCorrect++;
-                mcqResults.push({ q: q.q, isRight: right, correctAns: q.a[q.c] });
-                currentQ++; showQuestion();
+                if (isStrictLevel) {
+                    if (right) {
+                        btn.classList.add('correct');
+                        setTimeout(() => { currentQ++; showQuestion(); }, 500);
+                    } else {
+                        btn.classList.add('wrong');
+                        document.getElementById('strict-hint').style.display = 'block';
+                    }
+                } else {
+                    if (right) mcqCorrect++;
+                    mcqResults.push({ q: q.q, isRight: right, correctAns: q.a[q.c] });
+                    currentQ++; showQuestion();
+                }
             };
             opts.appendChild(btn);
         });
@@ -222,17 +249,25 @@
     function showMCQSummary() {
         document.getElementById('quiz-container').classList.remove('active');
         document.getElementById('mcq-summary').classList.add('active');
-        document.getElementById('mcq-correct-count').innerText = mcqCorrect;
-        document.getElementById('mcq-total-count').innerText = selectedTotal;
-        
         const list = document.getElementById('mcq-error-list'); list.innerHTML = '';
-        const errors = mcqResults.filter(r => !r.isRight);
-        if (errors.length === 0) list.innerHTML = '<div style="color:green; text-align:center; font-size:1.2rem;">全部答對！你太優秀了！🌟</div>';
-        else errors.forEach(r => {
-            const div = document.createElement('div'); div.className = 'error-item';
-            div.innerHTML = `<b>題目：</b>${r.q}<br><span style="color:green"><b>正確答案：</b>${r.correctAns}</span>`;
-            list.appendChild(div);
-        });
+        
+        if (isStrictLevel) {
+            document.getElementById('summary-title').innerText = "精熟練習達成！✅";
+            document.getElementById('mcq-correct-count').parentElement.style.display = 'none';
+            list.innerHTML = '<div style="text-align:center; font-size:1.2rem;">你已經正確回答了所有進階問題！</div>';
+        } else {
+            document.getElementById('summary-title').innerText = "測驗回顧 ✨";
+            document.getElementById('mcq-correct-count').parentElement.style.display = 'block';
+            document.getElementById('mcq-correct-count').innerText = mcqCorrect;
+            document.getElementById('mcq-total-count').innerText = selectedTotal;
+            const errors = mcqResults.filter(r => !r.isRight);
+            if (errors.length === 0) list.innerHTML = '<div style="color:green; text-align:center; font-size:1.2rem;">全部答對！太優秀了！🌟</div>';
+            else errors.forEach(r => {
+                const div = document.createElement('div'); div.className = 'error-item';
+                div.innerHTML = `<b>題目：</b>${r.q}<br><span style="color:green"><b>正確答案：</b>${r.correctAns}</span>`;
+                list.appendChild(div);
+            });
+        }
     }
 
     function startWordTest() {
@@ -246,11 +281,9 @@
         if (currentW >= wordData.length) { showFinalResult(); return; }
         const p = wordData[currentW];
         document.getElementById('word-audio-box').innerHTML = `<button class="read-btn" style="width:70px; height:70px; font-size:2rem; display:inline-flex;" onclick="speak('${p.correct}')">🔊 點我讀音</button>`;
-        
         const container = document.getElementById('word-pair-container'); container.innerHTML = '';
         const isLeft = Math.random() > 0.5;
         const w1 = isLeft ? p.correct : p.wrong; const w2 = isLeft ? p.wrong : p.correct;
-        
         [w1, w2].forEach(w => {
             const btn = document.createElement('button'); btn.className = 'word-btn-big'; btn.innerText = w;
             btn.onclick = function() {
@@ -267,14 +300,14 @@
     function showFinalResult() {
         document.getElementById('word-container').classList.remove('active');
         document.getElementById('result-screen').classList.add('active');
-        document.getElementById('final-total-score').innerText = `${mcqCorrect + wordCorrect} / ${selectedTotal + 10}`;
+        let totalVal = isStrictLevel ? "精熟完成" : (mcqCorrect + wordCorrect);
+        document.getElementById('final-total-score').innerText = totalVal;
     }
 
     function goToLobby() {
         const panels = ['quiz-container', 'word-container', 'result-screen', 'mcq-summary', 'level-selection'];
         panels.forEach(id => document.getElementById(id).classList.remove('active'));
         document.getElementById('mode-selection').classList.add('active');
-        document.body.classList.remove('audio-mode');
     }
 
     function updateCountdown() {
@@ -287,7 +320,7 @@
     setInterval(updateCountdown, 60000); updateCountdown();
     new QRCode(document.getElementById("qrcode"), { text: window.location.href, width: 140, height: 140 });
     function toggleQR() { const m = document.getElementById('qr-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-    function speak(t) { if (!isAudioMode) return; window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'zh-TW'; m.rate = 0.9; window.speechSynthesis.speak(m); }
+    function speak(t) { if (!isAudioMode) return; window.speechSynthesis.cancel(); const m = new SynthesisUtterance(t); m.lang = 'zh-TW'; m.rate = 0.9; window.speechSynthesis.speak(m); }
 </script>
 </body>
 </html>
